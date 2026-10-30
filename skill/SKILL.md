@@ -26,8 +26,9 @@ skills/<name>/
 ## 核心流程
 
 ### 1. 喂养（喂老面）
-技能实际使用中踩坑/被用户纠正/发现新工作流时，先过**杂菌三问**：
+技能实际使用中踩坑/被用户纠正/发现新工作流时，先过**杂菌三问 + 第零问**：
 
+0. **查重**：这条是不是已经在池子里？`grep 关键词 <skill>/ferment.md` 命中已有同类条目 → 不追加，最多在原条目后补注日期（重复踩坑本身是发酵强度信号）
 1. 这事归这个技能管吗？（不属于触发范围 → 不喂，找对技能或放弃）
 2. 是单次偶发还是可泛化？（连场景都复述不清楚 → 暂不喂）
 3. 教训能写成"如果 X → 做 Y"吗？（写不成因果句 → 先攒着，想清楚再喂）
@@ -42,9 +43,11 @@ skills/<name>/
 
 **🔴 CHECKPOINT：蒸馏会修改正式 SKILL.md，patch 前向用户简报"哪 3 条 → 合并成什么规则"再动手；批量蒸馏（≥2 个主题）必须等确认。**
 
+**蒸馏即备份（硬性第 0 步）**：动手前 `cp` 目标 SKILL.md 与 ferment.md 到 `.bak/`（带时间戳）并 md5 校验；无备份不蒸馏。
+
 1. 把 3+ 条合并成 **1 条**通用规则（教训要泛化为"如果 X → 做 Y"）
 2. 用 `patch` 写入 SKILL.md 的对应章节；无对应章节则新增
-3. 蒸馏后**在 ferment.md 对应条目后标记 `[已蒸馏→SKILL.md]`**，保留原文不删
+3. 蒸馏后**在 ferment.md 对应条目后标记 `[已蒸馏→SKILL.md]`**，保留原文不删；同时给 test-prompts.json 补 1 条覆盖新规则的测试 prompt（规则与证据同生）
 4. 过兑碱门（见下）
 
 ### 3. 兑碱门（防膨胀，每次改 SKILL.md 必过）
@@ -93,9 +96,11 @@ for f in ~/.hermes/skills/*/starter.md; do n=$(wc -l < "$f"); [ "$n" -gt 30 ] &&
 ls ~/.hermes/pending/skill*/*.json 2>/dev/null | head -5
 # ⑤ 索引脱链：技能存在但共享索引里没有
 for s in ~/.hermes/skills/*/; do n=$(basename "$s"); grep -q "\*\*$n\b" ~/.codex/shared/skills-index.md 2>/dev/null || echo "索引缺: $n"; done | head -10
+# ⑥ 待补检测：ferment 里有醒面降级待补条目
+grep -l "待补\|醒面降级" ~/.hermes/skills/*/ferment.md 2>/dev/null
 ```
 
-巡检发现积压 → 报告用户"X 技能攒了 N 条经验待蒸馏"，**不擅自蒸馏**（蒸馏有 CHECKPOINT）。定期巡检走 cron（hermes-cron-ops），报告纯只读。
+巡检发现积压 → 报告用户"X 技能攒了 N 条经验待蒸馏"，**不擅自蒸馏**（蒸馏有 CHECKPOINT）。定期巡检走 cron（hermes-cron-ops），报告纯只读但**追加归档到 `~/.hermes/skills/laomian-mantou/patrol-log.md`**（一行一查，含日期），保留趋势可见。
 
 ## 失败模式（patch/文件操作分支）
 
@@ -125,11 +130,11 @@ for s in ~/.hermes/skills/*/; do n=$(basename "$s"); grep -q "\*\*$n\b" ~/.codex
 
 | 用户说 | 动作 |
 |---|---|
-| 喂老面 / 记个经验 | 喂养：追加 ferment.md |
-| 蒸馒头 / 蒸馏 | 蒸馏：3 条同类合并进 SKILL.md + 兑碱门 |
-| 留种 | 重写 starter.md |
-| 技能酸了 / 膨胀了 | 兑碱门单项检查 + 修剪 |
-| 技能坏了 / 恢复 | 从 starter.md 恢复重写 SKILL.md |
+| 喂老面 / 记个经验 / feed the starter | 喂养：追加 ferment.md（先过四问：查重/归我管/可泛化/因果句） |
+| 蒸馒头 / 蒸馏 / distill | 蒸馏：3 条同类合并进 SKILL.md + 兑碱门（备份先行） |
+| 留种 / save seed | 重写 starter.md |
+| 技能酸了 / 膨胀了 / skill is bloated | 巡检（六查，只读）+ 修剪 |
+| 技能坏了 / 恢复 / restore from seed | 从 starter.md 恢复重写 SKILL.md |
 
 ## 与 darwin-skill 的集成（醒面验收器）
 
