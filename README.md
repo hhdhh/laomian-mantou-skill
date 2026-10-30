@@ -58,6 +58,15 @@ English triggers also work: `feed the starter`, `distill`, `save seed`, `skill i
 
 纯 Markdown 协议，无脚本依赖、无平台绑定。任何支持 SKILL.md 约定（name + description frontmatter）的 agent runtime 均可加载。
 
+## 与 darwin-skill 集成（可选但推荐）
+
+醒面环节内置了两档验收：
+
+- **轻量档**：小改动（<5 行）只做兑碱门量化读回，零开销
+- **达尔文档**：蒸馏/结构性改动 → 接入 [darwin-skill](https://github.com/alchaincyf/darwin-skill)（或任何 9 维评分 + 盲测的评估器）：改前后各评一次，**棘轮只保留提分改动，降分即回滚**；效果维度用独立子代理盲测（with-skill vs baseline）
+
+评估器不可用时自动降级轻量档，并在 ferment.md 记一条"醒面降级待补"，下次蒸馏前补验。**老面管生长，达尔文管验收**——两技能组合成完整闭环。
+
 ## License
 
 MIT
