@@ -34,7 +34,8 @@ skills/<name>/
 
 三问全过才：
 1. 追加一条到该技能 `ferment.md`
-2. 不立即改 SKILL.md —— 单次经验可能是偶发，让它继续发酵
+2. **读回确认落盘**（防审批队列静默丢失）：重新读 ferment.md 尾行核对条目在；若 Hermes 写审批队列（`~/.hermes/pending/skill*/`）有本技能积压 → 提醒用户批准，不重复追加
+3. 不立即改 SKILL.md —— 单次经验可能是偶发，让它继续发酵
 
 ### 2. 蒸馏（蒸馒头）
 `ferment.md` 中**同类经验 ≥3 条**（同一根因或同一主题）时触发：
@@ -75,6 +76,8 @@ skills/<name>/
 ### 5. 留种（每代更新）
 每次蒸馏进 SKILL.md 后同步重写 `starter.md`（仍 <30 行）。留种时对照技能的**原始目标**自问：这个种子能独立长回当前能力吗？不能 → 种子写漏了本质。
 
+**索引同步（留种后顺手做）**：蒸馏若改变了技能定位/触发范围，更新本机各技能索引中该技能那一行摘要（如 `~/.codex/shared/skills-index.md` 等共享侧索引），保证"先查索引再读全文"的检索链不过时。共享侧索引是生成物：只改摘要行，不手工重排。
+
 ## 闻酸味巡检（腐坏检测，被动+主动）
 
 「技能酸了」可被动触发，也可主动巡检。三条量化检测（只读，不改文件）：
@@ -86,6 +89,10 @@ find ~/.hermes/skills -name SKILL.md -exec awk 'END{if(NR>300) print FILENAME": 
 for f in ~/.hermes/skills/*/ferment.md; do n=$(grep -cv '已蒸馏' "$f" 2>/dev/null || true); [ "${n:-0}" -gt 0 ] && echo "$f: ${n}条待蒸馏"; done
 # ③ 漂移：starter.md 缺失或 >30 行
 for f in ~/.hermes/skills/*/starter.md; do n=$(wc -l < "$f"); [ "$n" -gt 30 ] && echo "$f: ${n}行超种子上限"; done
+# ④ 审批积压：写审批队列里有技能相关待批操作
+ls ~/.hermes/pending/skill*/*.json 2>/dev/null | head -5
+# ⑤ 索引脱链：技能存在但共享索引里没有
+for s in ~/.hermes/skills/*/; do n=$(basename "$s"); grep -q "\*\*$n\b" ~/.codex/shared/skills-index.md 2>/dev/null || echo "索引缺: $n"; done | head -10
 ```
 
 巡检发现积压 → 报告用户"X 技能攒了 N 条经验待蒸馏"，**不擅自蒸馏**（蒸馏有 CHECKPOINT）。定期巡检走 cron（hermes-cron-ops），报告纯只读。
