@@ -67,6 +67,10 @@ English triggers also work: `feed the starter`, `distill`, `save seed`, `skill i
 
 评估器不可用时自动降级轻量档，并在 ferment.md 记一条"醒面降级待补"，下次蒸馏前补验。**老面管生长，达尔文管验收**——两技能组合成完整闭环。
 
+## 闻酸味巡检（腐坏检测）
+
+被动等"技能酸了"喊救命太晚——skill 内置三条**只读**巡检命令（超长 >300 行 / ferment 积压未蒸馏 / starter 漂移），可直接手动跑，也可挂 cron 定期巡检。巡检只报告不蒸馏：发现积压会提示"说『蒸馒头』触发"，是否蒸馏由你决定（有 CHECKPOINT）。
+
 ## License
 
 MIT
